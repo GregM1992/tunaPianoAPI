@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using TunaPiano.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -30,5 +31,42 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+
+
+app.MapGet("/artists/{artistId}", (TunaPianoDbContext db, int artistId) => //getSingleArtist
+{ 
+    return db.Artists.Include(a => a.Songs).Single(a => a.Id == artistId);
+});
+
+app.MapGet("/artists", (TunaPianoDbContext db) => //getAllArtists
+{
+    return db.Artists.ToList();
+});
+
+app.MapPost("/artists", (TunaPianoDbContext db, Artist newArtist) => //createNewArtist
+{
+    db.Artists.Add(newArtist);
+    db.SaveChanges();
+    return Results.Created($"/artists/{newArtist.Id}", newArtist);
+});
+
+app.MapDelete("/artists", (TunaPianoDbContext db, int artistId) =>
+{
+    var artistToDelete = db.Artists.Single(b => b.Id == artistId);
+    db.Artists.Remove(artistToDelete);
+});
+
+app.MapPut("/artists", (TunaPianoDbContext db, int artistId, Artist updatedArtist) =>
+{
+    var artistToUpdate = db.Artists.Single(a => a.Id == artistId);
+    artistToUpdate.Id = artistId;
+    artistToUpdate.Name = updatedArtist.Name;
+    artistToUpdate.Age = updatedArtist.Age;
+    artistToUpdate.Bio = updatedArtist.Bio;
+    db.SaveChanges();
+    return Results.Created($"/artists/{updatedArtist.Id}", updatedArtist);
+   
+});
 
 app.Run();
