@@ -3,6 +3,6 @@
     public class SongGenreDto
     {
         public int SongId { get; set; }
-        public string GenreId { get; set;}
+        public int? GenreId { get; set;}
     }
 }
